@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/mvc
+		http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean" />
+	<bean id="messageConverters" class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+		<property name="supportedMediaTypes">
+			<list>
+				<value>application/json;charset=UTF-8</value>
+			</list>
+		</property>
+		<property name="objectMapper">
+			<bean class="com.fasterxml.jackson.databind.ObjectMapper">
+				<property name="serializationInclusion">
+					<value type="com.fasterxml.jackson.annotation.JsonInclude.Include">NON_DEFAULT</value>
+				</property>
+				<property name="dateFormat">
+					<value type="java.text.SimpleDateFormat">yyyy-MM-dd HH:mm:ss</value>
+				</property>
+			</bean>
+		</property>
+	</bean>
+	<mvc:annotation-driven>
+		<mvc:message-converters>
+			<ref bean="messageConverters" />
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+	<context:component-scan base-package="com.github.chaijunkun.controller" />
+	<!-- JSR 303验证切面 -->
+	<bean id="jsrValidationAdvice" class="com.github.chaijunkun.aop.JSRValidationAdvice" />
+	<aop:config>
+		<aop:pointcut id="jsrValidationPC" expression="execution(public * com.github.chaijunkun.controller.*.*(..))" />
+		<aop:aspect id="jsrValidationAspect" ref="jsrValidationAdvice">
+			<aop:around method="aroundMethod" pointcut-ref="jsrValidationPC" />
+		</aop:aspect>
+	</aop:config>
+
+</beans>
